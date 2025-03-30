@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes App</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body class="bg-light">
+
+    <div class="container mt-5">
+        <h2 class="text-center">Notes App</h2>
+        <button class="btn btn-primary my-3" data-bs-toggle="modal" data-bs-target="#addNoteModal">Add Note</button>
+
+        <div id="notes-container" class="row"></div>
+    </div>
+
+    <!-- Add Note Modal -->
+    <div class="modal fade" id="addNoteModal" tabindex="-1" aria-labelledby="addNoteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Note</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="noteTitle" class="form-control my-2" placeholder="Title">
+                    <textarea id="noteContent" class="form-control" placeholder="Content"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="addNote()">Add Note</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = "http://127.0.0.1:5000";  // Define a base API URL
+
+// Fetch and display notes
+function fetchNotes() {
+    $.get(BASE_URL+"/get_notes", function(data) {
+        let notesHtml = "";
+        data.forEach(note => {
+            notesHtml += `
+                <div class="col-md-4">
+                    <div class="card p-3 mb-3">
+                        <h5>${note.title}</h5>
+                        <p>${note.content}</p>
+                        <button class="btn btn-danger" onclick="deleteNote('${note.title}')">Delete</button>
+                    </div>
+                </div>`;
+        });
+        $("#notes-container").html(notesHtml);
+    });
+}
+
+// Add a note
+// function addNote() {
+//     let title = $("#noteTitle").val();
+//     let content = $("#noteContent").val();
+
+//     $.ajax({
+//         url: BASE_URL+"/add_note",
+//         type: "POST",
+//         contentType: "application/json",
+//         data: JSON.stringify({ title: title, content: content }),
+//         success: function() {
+//             $("#addNoteModal").modal("hide");
+//             fetchNotes();
+//         },
+//         error: function(xhr) {
+//             console.log("Error:", xhr.responseText);
+//         }
+//     });
+// }
+
+
+// Add a new task
+function addNote() {
+    
+    let title = $("#noteTitle").val();
+    let content = $("#noteContent").val();
+
+    fetch(BASE_URL + "/add_note", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: title, content: content})  // Ensure `completed` field is added
+    }).then(() => {
+        fetchNotes();
+    });
+}
+
+// Delete a note
+function deleteNote(title) {
+    $.ajax({
+        url: BASE_URL+"/delete_note",
+        type: "DELETE",
+        contentType: "application/json",
+        data: JSON.stringify({ title: title }),
+        success: function() {
+            fetchNotes();
+        },
+        error: function(xhr) {
+            console.log("Error:", xhr.responseText);
+        }
+    });
+}
+
+$(document).ready(function() {
+    fetchNotes();
+});
+
+
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
